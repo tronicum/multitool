@@ -18,6 +18,8 @@ function install() {
 function discover() {
     echo discovering uname
     binary $1
+    # autosave to env?
+    # in binary() or discover() ?
 }
 
 function export_var() {
@@ -40,6 +42,7 @@ else
   then
     discover uname
   fi
+  # we need an conditional for verbose output
   if [[ "$binary_uname" -eq 1 ]]
     then
       echo -n "you appear to be running "
@@ -53,9 +56,35 @@ else
       export_var uname_r `uname -r`
   fi
 
-  if  [[ $1 -eq "install" ]]
+  if  [ $1 == "install" ]
     then
+    discover brew
+    export_var binary_brew 1
+    echo $binary_brew
+    if [[ "$binary_brew" -eq 1 ]]
+    then
+    echo "I can install stuff via brew
+
+use $1 install tool <tool name>"
+    fi
     install
+  fi
+
+  # brew install tool something
+  # we need a better parameter parser and check for the tools to be installed better
+  #if  [[ $1 -eq "install" ]] && [[ $2 -eq "tools" ]]
+  #installer_brew=1
+  export_var installer_brew 1
+echo $2
+  if  [ $2 == "tool" ]
+  then
+   echo "2nd is tool" #debug
+  fi
+  if  [ $2 == "tool" ] && [[ $installer_brew -eq 1 ]]
+  # we need to check for $3
+  then
+   echo "i will use brew" #debug
+   brew install $3
   fi
 
 echo ok

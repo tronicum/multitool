@@ -16,6 +16,7 @@ function install() {
 }
 
 function discover() {
+    echo discovering uname
     binary $1
 }
 
@@ -23,13 +24,20 @@ function export_var() {
     export $1=$2
 }
 
-
 if [ $# -eq 0 ]
   then
-    echo "I am the werfty multitool"
+    echo "I am the werfty multitool 0.1.0
+
+do you want to run 
+
+wmt discover
+
+to detect the environment?
+
+if have been called via '$0'"
 else
-  if  [[ $1 -eq "discover" ]]
-    then
+  if  [ "$1" == "discover" ]
+  then
     discover uname
   fi
   if [[ "$binary_uname" -eq 1 ]]
@@ -44,5 +52,11 @@ else
       export_var uname_m `uname -m`
       export_var uname_r `uname -r`
   fi
+
+  if  [[ $1 -eq "install" ]]
+    then
+    install
+  fi
+
 echo ok
 fi

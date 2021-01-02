@@ -21,3 +21,4 @@ ansible, terraform, docker, docker-compose, virtualbox, dpkg, apt-get, apt, rpm,
 ideas
 
 check for debian style alternatives? (for discovering/maintaining defaults)
+network stuff (netcat, dns, whois)

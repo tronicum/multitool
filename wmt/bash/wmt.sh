@@ -1,10 +1,11 @@
 #!/bin/bash
 
-function binary() {
+function discover_binary() {
     # https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
     type $1 >/dev/null 2>&1 || { echo >&2 "I wanted $1 but it's not installed."; exit 0; }
     echo found $1
     export binary_uname=1
+    # improve exit/return for autosaving
 }
 
 function run() {
@@ -17,7 +18,7 @@ function install() {
 
 function discover() {
     echo discovering uname
-    binary $1
+    discover_binary $1
     # autosave to env?
     # in binary() or discover() ?
 }
@@ -30,7 +31,7 @@ if [ $# -eq 0 ]
   then
     echo "I am the werfty multitool 0.1.0
 
-do you want to run 
+do you want to run
 
 wmt discover
 

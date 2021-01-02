@@ -17,3 +17,7 @@ uname, brew
 
 WIP tools/backends
 ansible, terraform, docker, docker-compose, virtualbox, dpkg, apt-get, apt, rpm, yum
+
+ideas
+
+check for debian style alternatives? (for discovering/maintaining defaults)

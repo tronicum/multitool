@@ -1,1 +1,1 @@
-add something like apt-get || rpm || apk to detect what package manager is present and usable
+add something like apt-get || rpm || apk to detect what package manager is present and usable (covered by tool already?)

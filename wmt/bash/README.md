@@ -1,3 +1,7 @@
+multitool
+
+an universal toolbox for multiple OS commands, wrapped to work anywhere using bash.
+
 commands
 
 ```

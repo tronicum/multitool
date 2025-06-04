@@ -1,14 +1,14 @@
 commands
 
 ```
-discover (get environment)
-install tool (install tool)
+install <package> 
+search <package>
+install-package-manager (osx only at the moment
 ```
 
 WIP
 ```
 discover tools (list tools)
-introduce packages (and search for them)
 ```
 
 supported tools yet

@@ -1,92 +1,151 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-function discover_binary() {
-    # https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
-    type $1 >/dev/null 2>&1 || { echo >&2 "I wanted $1 but it's not installed."; exit 0; }
-    echo found $1
-    export binary_uname=1
-    # improve exit/return for autosaving
+set -e
+
+# werfty - Universal Package Manager Wrapper
+# Usage: werfty install <package> | search <package> | install-package-manager
+
+function detect_os() {
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)     OS=Linux;;
+        Darwin*)    OS=Mac;;
+        *)          OS="UNKNOWN"
+    esac
+    echo "$OS"
 }
 
-function run() {
-   ``$1`` $2
-}
-
-function install() {
-    echo i need brew
-}
-
-function discover() {
-    echo discovering uname
-    discover_binary $1
-    # autosave to env?
-    # in binary() or discover() ?
-}
-
-function export_var() {
-    export $1=$2
-}
-
-if [ $# -eq 0 ]
-  then
-    echo "I am the werfty multitool 0.1.0
-
-do you want to run
-
-wmt discover
-
-to detect the environment?
-
-if have been called via '$0'"
-else
-  if  [ "$1" == "discover" ]
-  then
-    discover uname
-  fi
-  # we need an conditional for verbose output
-  if [[ "$binary_uname" -eq 1 ]]
-    then
-      echo -n "you appear to be running "
-      run uname
-      run uname -a
-      run uname -m
-      run uname -r
-       #we need an conditional if we want to persist binary_* and uname_*
-      export_var uname_a `uname -a`
-      export_var uname_m `uname -m`
-      export_var uname_r `uname -r`
-  fi
-
-  if  [ $1 == "install" ]
-    then
-    discover brew
-    export_var binary_brew 1
-    echo $binary_brew
-    if [[ "$binary_brew" -eq 1 ]]
-    then
-    echo "I can install stuff via brew
-
-use $1 install tool <tool name>"
+function detect_package_manager() {
+    OS="$1"
+    if [[ $OS == "Mac" ]]; then
+        if command -v brew &>/dev/null; then
+            echo "brew"
+        else
+            echo "none"
+        fi
+    elif [[ $OS == "Linux" ]]; then
+        if command -v apt &>/dev/null; then
+            echo "apt"
+        elif command -v dnf &>/dev/null; then
+            echo "dnf"
+        elif command -v yum &>/dev/null; then
+            echo "yum"
+        elif command -v pacman &>/dev/null; then
+            echo "pacman"
+        elif command -v zypper &>/dev/null; then
+            echo "zypper"
+        else
+            echo "none"
+        fi
+    else
+        echo "none"
     fi
-    install
-  fi
+}
 
-  # brew install tool something
-  # we need a better parameter parser and check for the tools to be installed better
-  #if  [[ $1 -eq "install" ]] && [[ $2 -eq "tools" ]]
-  #installer_brew=1
-  export_var installer_brew 1
-echo $2
-  if  [ $2 == "tool" ]
-  then
-   echo "2nd is tool" #debug
-  fi
-  if  [ $2 == "tool" ] && [[ $installer_brew -eq 1 ]]
-  # we need to check for $3
-  then
-   echo "i will use brew" #debug
-   brew install $3
-  fi
+function usage() {
+    echo "Usage: $0 {install|search|install-package-manager} <package>"
+    echo "  install <package>               Install a package"
+    echo "  search <package>                Search for a package"
+    echo "  install-package-manager         Install the default package manager (macOS only: Homebrew)"
+    exit 1
+}
 
-echo ok
+function install_package_manager() {
+    OS=$(detect_os)
+    if [[ "$OS" != "Mac" ]]; then
+        echo "Automatic package manager installation is only supported on macOS (Homebrew)."
+        exit 2
+    fi
+    if command -v brew &>/dev/null; then
+        echo "Homebrew is already installed."
+        return 0
+    fi
+    echo "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    echo "Homebrew installed successfully."
+}
+
+function install_package() {
+    MANAGER="$1"
+    PKG="$2"
+    if [[ $MANAGER == "brew" ]]; then
+        brew install "$PKG"
+    elif [[ $MANAGER == "apt" ]]; then
+        sudo apt update
+        sudo apt install -y "$PKG"
+    elif [[ $MANAGER == "dnf" ]]; then
+        sudo dnf install -y "$PKG"
+    elif [[ $MANAGER == "yum" ]]; then
+        sudo yum install -y "$PKG"
+    elif [[ $MANAGER == "pacman" ]]; then
+        sudo pacman -Sy --noconfirm "$PKG"
+    elif [[ $MANAGER == "zypper" ]]; then
+        sudo zypper install -y "$PKG"
+    else
+        echo "No supported package manager found."
+        exit 2
+    fi
+}
+
+function search_package() {
+    MANAGER="$1"
+    PKG="$2"
+    if [[ $MANAGER == "brew" ]]; then
+        brew search "$PKG"
+    elif [[ $MANAGER == "apt" ]]; then
+        apt search "$PKG"
+    elif [[ $MANAGER == "dnf" ]]; then
+        dnf search "$PKG"
+    elif [[ $MANAGER == "yum" ]]; then
+        yum search "$PKG"
+    elif [[ $MANAGER == "pacman" ]]; then
+        pacman -Ss "$PKG"
+    elif [[ $MANAGER == "zypper" ]]; then
+        zypper search "$PKG"
+    else
+        echo "No supported package manager found."
+        exit 2
+    fi
+}
+
+# Main
+if [[ $# -lt 1 ]]; then
+    usage
 fi
+
+ACTION="$1"
+PKG="$2"
+
+if [[ $ACTION == "install-package-manager" ]]; then
+    install_package_manager
+    exit 0
+fi
+
+if [[ $# -lt 2 ]]; then
+    usage
+fi
+
+OS=$(detect_os)
+MANAGER=$(detect_package_manager "$OS")
+
+if [[ $MANAGER == "none" ]]; then
+    if [[ $OS == "Mac" ]]; then
+        echo "Homebrew is not installed. You can install it using:"
+        echo "  $0 install-package-manager"
+    else
+        echo "No supported package manager found on your system."
+    fi
+    exit 2
+fi
+
+case "$ACTION" in
+    install)
+        install_package "$MANAGER" "$PKG"
+        ;;
+    search)
+        search_package "$MANAGER" "$PKG"
+        ;;
+    *)
+        usage
+        ;;
+esac

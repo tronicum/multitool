@@ -3,7 +3,7 @@
 set -e
 
 # multitool - Universal Package Manager Wrapper & more
-# Usage: multitool install <package> | search <package> | install-package-manager
+# Usage: mt.sh install <package> | search <package> | install-package-manager
 
 function detect_os() {
     unameOut="$(uname -s)"
